@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Калькулятор прибыли с товара на маркетплейсе</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600&family=Unbounded:wght@500;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #E9EEF0;
+  --panel: #FFFFFF;
+  --ink: #12222B;
+  --muted: #55666E;
+  --line: #CBD5DA;
+  --field: #F5F8F9;
+  --profit: #12805C;
+  --loss: #B3341F;
+  --warn: #8A5A00;
+  --warn-bg: #FBF1DA;
+  --loss-bg: #FBE6E1;
+  --profit-bg: #E1F3EB;
+  --c-cost: #2F4B5C;
+  --c-comm: #5F8196;
+  --c-log: #9DB4C2;
+  --c-ads: #D9A441;
+  --c-vat: #3E8E9E;
+  --c-tax: #8C6D8F;
+  --c-profit: #12805C;
+  --focus: #1B6FA8;
+  --display: "Unbounded", "Onest", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+  --text: "Onest", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+  box-sizing: border-box;
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0E1A20;
+    --panel: #15252D;
+    --ink: #E6EEF1;
+    --muted: #93A6AF;
+    --line: #2A3C45;
+    --field: #1B2F38;
+    --profit: #3DD598;
+    --loss: #FF7B63;
+    --warn: #F0C36A;
+    --warn-bg: #3A2F14;
+    --loss-bg: #3D1F1A;
+    --profit-bg: #12372B;
+    --c-cost: #6F93A8;
+    --c-comm: #4E7389;
+    --c-log: #35566A;
+    --c-ads: #D9A441;
+    --c-vat: #5DB5C6;
+    --c-tax: #A98BAC;
+    --c-profit: #3DD598;
+    --focus: #6CB6E8;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0E1A20;
+  --panel: #15252D;
+  --ink: #E6EEF1;
+  --muted: #93A6AF;
+  --line: #2A3C45;
+  --field: #1B2F38;
+  --profit: #3DD598;
+  --loss: #FF7B63;
+  --warn: #F0C36A;
+  --warn-bg: #3A2F14;
+  --loss-bg: #3D1F1A;
+  --profit-bg: #12372B;
+  --c-cost: #6F93A8;
+  --c-comm: #4E7389;
+  --c-log: #35566A;
+  --c-ads: #D9A441;
+  --c-vat: #5DB5C6;
+  --c-tax: #A98BAC;
+  --c-profit: #3DD598;
+  --focus: #6CB6E8;
+}
+html { scroll-padding-top: env(safe-area-inset-top, 0px); }
+*, *::before, *::after { box-sizing: inherit; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--text);
+  font-size: 16px;
+  line-height: 1.5;
+  -webkit-text-size-adjust: 100%;
+}
+.wrap { max-width: 1120px; margin: 0 auto; padding: 28px 20px 96px; }
+.top { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; margin-bottom: 28px; }
+.head { max-width: 62ch; }
+h1 {
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: clamp(1.45rem, 3.4vw, 2.1rem);
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+  margin: 0 0 12px;
+}
+.head p { margin: 0; color: var(--muted); font-size: 1.02rem; }
+.theme-btn {
+  flex: none;
+  font: inherit; font-size: 0.9rem; color: var(--ink);
+  background: var(--panel); border: 1px solid var(--line); border-radius: 8px;
+  min-height: 44px; padding: 0 14px; cursor: pointer;
+}
+.grid { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); gap: 20px; align-items: start; }
+.panel {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 22px;
+}
+.inputs { display: grid; gap: 26px; }
+fieldset { border: 0; margin: 0; padding: 0; min-width: 0; }
+legend { font-weight: 600; font-size: 1.05rem; padding: 0; margin-bottom: 12px; }
+.fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+.field { display: flex; flex-direction: column; gap: 5px; min-width: 0; }
+.field.wide { grid-column: 1 / -1; }
+.field label { font-size: 0.92rem; font-weight: 500; }
+.box { position: relative; }
+.box input, .box select, .text-input {
+  width: 100%;
+  font: inherit;
+  font-size: 16px;
+  color: var(--ink);
+  background: var(--field);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 10px 40px 10px 12px;
+  min-height: 44px;
+}
+.box select { padding-right: 12px; }
+.box select:disabled { opacity: 0.5; }
+.text-input { padding-right: 12px; }
+.box .unit {
+  position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
+  color: var(--muted); font-size: 0.9rem; pointer-events: none;
+}
+input:focus-visible, select:focus-visible, button:focus-visible, summary:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 1px;
+}
+.hint { font-size: 0.8rem; color: var(--muted); line-height: 1.35; }
+
+.results { position: sticky; top: calc(16px + env(safe-area-inset-top, 0px)); display: grid; gap: 22px; }
+.res-title { margin: 0 0 4px; color: var(--muted); font-size: 0.95rem; overflow-wrap: anywhere; }
+.big {
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: clamp(2.1rem, 6vw, 3.2rem);
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  margin: 0;
+  font-variant-numeric: tabular-nums;
+}
+.big.pos { color: var(--profit); }
+.big.neg { color: var(--loss); }
+.big-sub { margin: 4px 0 0; color: var(--muted); font-size: 0.95rem; }
+.metrics { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin-top: 18px; }
+.metric { border-top: 2px solid var(--line); padding-top: 8px; min-width: 0; }
+.metric b { display: block; font-size: 1.2rem; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.metric span { font-size: 0.82rem; color: var(--muted); }
+.notice { margin: 16px 0 0; padding: 10px 12px; border-radius: 8px; font-size: 0.92rem; }
+.notice.loss { background: var(--loss-bg); color: var(--loss); }
+.notice.warn { background: var(--warn-bg); color: var(--warn); }
+.notice.good { background: var(--profit-bg); color: var(--profit); }
+.notice:empty { display: none; }
+
+h2 { font-size: 1.05rem; margin: 0 0 4px; font-weight: 600; }
+.sub { margin: 0 0 14px; color: var(--muted); font-size: 0.9rem; }
+.bar {
+  display: flex; height: 38px; border-radius: 6px; overflow: hidden;
+  background: var(--field); border: 1px solid var(--line);
+}
+.bar.over { border-color: var(--loss); }
+.seg { height: 100%; min-width: 0; transition: width .25s ease; }
+.legend { list-style: none; margin: 14px 0 0; padding: 0; display: grid; gap: 7px; }
+.legend li { display: grid; grid-template-columns: 14px 1fr auto auto; gap: 10px; align-items: center; font-size: 0.93rem; }
+.sw { width: 14px; height: 14px; border-radius: 3px; }
+.legend .amt { font-variant-numeric: tabular-nums; font-weight: 500; text-align: right; }
+.legend .pct { font-variant-numeric: tabular-nums; color: var(--muted); min-width: 3.6em; text-align: right; }
+
+.keyprices { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+.kp b { display: block; font-size: 1.3rem; font-variant-numeric: tabular-nums; }
+.kp span { font-size: 0.85rem; color: var(--muted); }
+
+.tablewrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 0.93rem; font-variant-numeric: tabular-nums; }
+th, td { text-align: right; padding: 8px 10px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+th:first-child, td:first-child { text-align: left; }
+th { font-weight: 500; color: var(--muted); font-size: 0.85rem; }
+td.cur, th.cur { background: var(--field); font-weight: 600; }
+td.neg { color: var(--loss); }
+td.pos { color: var(--profit); }
+
+details { font-size: 0.93rem; }
+summary { cursor: pointer; font-weight: 600; min-height: 32px; }
+details p { margin: 10px 0 0; color: var(--muted); }
+details ul { margin: 8px 0 0; padding-left: 20px; color: var(--muted); }
+details li { margin: 4px 0; }
+.foot { margin-top: 26px; color: var(--muted); font-size: 0.85rem; max-width: 70ch; }
+
+.dock { display: none; }
+@media (max-width: 920px) {
+  .grid { grid-template-columns: minmax(0, 1fr); }
+  .results { position: static; order: -1; }
+  .dock {
+    display: flex; justify-content: space-between; align-items: center; gap: 12px;
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 10;
+    background: var(--panel); border-top: 1px solid var(--line);
+    padding: 10px 20px calc(10px + env(safe-area-inset-bottom, 0px));
+  }
+  .dock span { font-size: 0.85rem; color: var(--muted); }
+  .dock b { font-family: var(--display); font-size: 1.15rem; font-variant-numeric: tabular-nums; }
+  .dock b.pos { color: var(--profit); }
+  .dock b.neg { color: var(--loss); }
+}
+@media (max-width: 520px) {
+  .wrap { padding: 20px 14px 96px; }
+  .top { flex-direction: column; }
+  .panel { padding: 18px 16px; }
+  .fields { grid-template-columns: minmax(0, 1fr); }
+  .metrics { grid-template-columns: minmax(0, 1fr); }
+  .metric { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
+  .keyprices { grid-template-columns: minmax(0, 1fr); }
+  .legend li { grid-template-columns: 14px 1fr auto; }
+  .legend .pct { display: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .seg { transition: none; }
+}
+</style>
+</head>
+<body>
+<main class="wrap">
+  <div class="top">
+    <header class="head">
+      <h1>Сколько вы зарабатываете с одной проданной штуки</h1>
+      <p>Введите цену и расходы. Калькулятор покажет прибыль, маржу, окупаемость вложений и цену, ниже которой товар уходит в убыток. Все ставки можно менять под вашу площадку и категорию.</p>
+    </header>
+    <button type="button" class="theme-btn" id="themeBtn">Тема: авто</button>
+  </div>
+
+  <div class="grid">
+    <section class="panel inputs" id="inputs" aria-label="Исходные данные"></section>
+
+    <section class="results" aria-label="Результат" aria-live="polite">
+      <div class="panel">
+        <p class="res-title" id="resTitle">Ваш товар</p>
+        <p class="big" id="bigProfit">—</p>
+        <p class="big-sub">чистая прибыль с одной проданной штуки</p>
+        <div class="metrics">
+          <div class="metric"><b id="mMargin">—</b><span>чистая маржа от цены</span></div>
+          <div class="metric"><b id="mRoi">—</b><span>окупаемость закупки</span></div>
+          <div class="metric"><b id="mMonth">—</b><span id="mMonthLbl">прибыль в месяц</span></div>
+        </div>
+        <p class="notice" id="notice"></p>
+      </div>
+
+      <div class="panel">
+        <h2>Куда уходит цена</h2>
+        <p class="sub" id="barSub">Из каждой проданной штуки</p>
+        <div class="bar" id="bar" role="img" aria-label="Структура цены"></div>
+        <ul class="legend" id="legend"></ul>
+      </div>
+
+      <div class="panel">
+        <div class="keyprices">
+          <div class="kp"><b id="kpBreak">—</b><span>минимальная цена без убытка</span></div>
+          <div class="kp"><b id="kpTarget">—</b><span id="kpTargetLbl">цена для нужной маржи</span></div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2>Что будет, если изменить цену</h2>
+        <p class="sub">Остальные параметры остаются прежними.</p>
+        <div class="tablewrap"><table id="sens"></table></div>
+      </div>
+
+      <div class="panel">
+        <details>
+          <summary>Как считается</summary>
+          <p>Все расходы приводятся к одной проданной штуке, с учётом того, что часть заказов не выкупают.</p>
+          <ul>
+            <li>Логистика до покупателя и хранение берутся за каждый заказ, а обратная логистика за каждый невыкупленный. Сумму делим на долю выкупа.</li>
+            <li>Упаковка и маркировка считаются на каждую проданную штуку.</li>
+            <li>Комиссия и реклама считаются от цены продажи.</li>
+            <li>Невыкупленный товар возвращается на склад и снова продаётся, поэтому его себестоимость не списывается.</li>
+            <li>НДС: цена для покупателя считается с НДС. К уплате идёт НДС с цены за вычетом входящего НДС с закупки (если вычет включён). НДС с услуг площадки и рекламы в расчёт не входит, это запас в сторону осторожности.</li>
+            <li>Налог: для режима «Доходы» берётся процент от выручки без НДС, для режима «Доходы минус расходы» процент от прибыли до налога. Минимальный налог и страховые взносы не учтены.</li>
+          </ul>
+        </details>
+      </div>
+    </section>
+  </div>
+
+  <p class="foot">Калькулятор даёт оценку, а не бухгалтерский расчёт. Комиссии, тарифы логистики и налоговые ставки меняются: сверяйте их с актуальными условиями вашей площадки и проверяйте налоговый режим у бухгалтера.</p>
+</main>
+
+<div class="dock" aria-hidden="true">
+  <div><span>Прибыль с одной штуки</span><br><b id="dockProfit">—</b></div>
+  <div style="text-align:right"><span>Маржа</span><br><b id="dockMargin">—</b></div>
+</div>
+
+<script>
+(function () {
+  var KEY = "ue-calc-v2";
+  var THEME_KEY = "ue-theme";
+
+  var GROUPS = [
+    { title: "Товар и цена", fields: [
+      { id: "name", type: "text", label: "Название товара", ph: "Например, термокружка 450 мл", wide: true, def: "" },
+      { id: "price", label: "Цена продажи", unit: "₽", def: "1500", hint: "Сколько платит покупатель" },
+      { id: "cost", label: "Себестоимость", unit: "₽", def: "450", hint: "Закупка или производство" },
+      { id: "buyout", label: "Доля выкупа", unit: "%", def: "80", hint: "Сколько заказов доходит до покупки, остальные возвращаются", wide: true }
+    ]},
+    { title: "Расходы площадки", fields: [
+      { id: "comm", label: "Комиссия", unit: "%", def: "15", hint: "Для вашей категории" },
+      { id: "logi", label: "Доставка покупателю", unit: "₽", def: "70", hint: "За каждый заказ" },
+      { id: "ret", label: "Возврат на склад", unit: "₽", def: "50", hint: "За каждый невыкупленный заказ" },
+      { id: "stor", label: "Хранение", unit: "₽", def: "10", hint: "На один заказ" },
+      { id: "pack", label: "Упаковка и маркировка", unit: "₽", def: "20", hint: "На одну проданную штуку", wide: true }
+    ]},
+    { title: "Реклама и налоги", fields: [
+      { id: "ads", label: "Реклама", unit: "%", def: "8", hint: "Доля цены на продвижение", wide: true },
+      { id: "vat", type: "select", label: "НДС", wide: true, def: "0",
+        options: [["0", "Нет (без НДС)"], ["5", "5%"], ["7", "7%"], ["10", "10%"], ["20", "20%"]] },
+      { id: "vatIn", type: "select", label: "Вычет входящего НДС с закупки", wide: true, def: "yes",
+        options: [["yes", "Принимаю к вычету"], ["no", "Не принимаю"]], hint: "Работает, если выбран НДС" },
+      { id: "taxMode", type: "select", label: "Налоговый режим", wide: true, def: "rev",
+        options: [["rev", "УСН «Доходы» (от выручки)"], ["profit", "УСН «Доходы минус расходы» (от прибыли)"], ["custom", "Свой процент от выручки"]] },
+      { id: "tax", label: "Ставка налога", unit: "%", def: "6", hint: "Уточните у бухгалтера", wide: true }
+    ]},
+    { title: "План", fields: [
+      { id: "units", label: "Продаж в месяц", unit: "шт", def: "100", hint: "Сколько штук выкупят" },
+      { id: "target", label: "Желаемая маржа", unit: "%", def: "20", hint: "От цены продажи" }
+    ]}
+  ];
+
+  var state = {};
+  GROUPS.forEach(function (g) { g.fields.forEach(function (f) { state[f.id] = f.def; }); });
+  try {
+    var saved = JSON.parse(localStorage.getItem(KEY) || "null");
+    if (saved && typeof saved === "object") {
+      Object.keys(state).forEach(function (k) { if (typeof saved[k] === "string") state[k] = saved[k]; });
+    }
+  } catch (e) {}
+  function persist() { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {} }
+
+  // ---------- theme ----------
+  var THEMES = ["auto", "dark", "light"];
+  var THEME_LABEL = { auto: "Тема: авто", dark: "Тема: тёмная", light: "Тема: светлая" };
+  var theme = "auto";
+  try { var tv = localStorage.getItem(THEME_KEY); if (THEMES.indexOf(tv) >= 0) theme = tv; } catch (e) {}
+  function applyTheme() {
+    if (theme === "auto") document.documentElement.removeAttribute("data-theme");
+    else document.documentElement.setAttribute("data-theme", theme);
+    document.getElementById("themeBtn").textContent = THEME_LABEL[theme];
+  }
+  document.getElementById("themeBtn").addEventListener("click", function () {
+    theme = THEMES[(THEMES.indexOf(theme) + 1) % THEMES.length];
+    try { localStorage.setItem(THEME_KEY, theme); } catch (e) {}
+    applyTheme();
+  });
+  applyTheme();
+
+  // ---------- build inputs ----------
+  var root = document.getElementById("inputs");
+  GROUPS.forEach(function (g) {
+    var fs = document.createElement("fieldset");
+    var lg = document.createElement("legend");
+    lg.textContent = g.title;
+    fs.appendChild(lg);
+    var wrap = document.createElement("div");
+    wrap.className = "fields";
+    g.fields.forEach(function (f) {
+      var d = document.createElement("div");
+      d.className = "field" + (f.wide ? " wide" : "");
+      var lab = document.createElement("label");
+      lab.setAttribute("for", f.id);
+      lab.textContent = f.label;
+      d.appendChild(lab);
+      var el;
+      if (f.type === "select") {
+        var box = document.createElement("div"); box.className = "box";
+        el = document.createElement("select");
+        f.options.forEach(function (o) {
+          var op = document.createElement("option"); op.value = o[0]; op.textContent = o[1]; el.appendChild(op);
+        });
+        box.appendChild(el); d.appendChild(box);
+      } else if (f.type === "text") {
+        el = document.createElement("input");
+        el.type = "text"; el.className = "text-input"; el.placeholder = f.ph || ""; el.maxLength = 80;
+        d.appendChild(el);
+      } else {
+        var bx = document.createElement("div"); bx.className = "box";
+        el = document.createElement("input");
+        el.type = "text"; el.setAttribute("inputmode", "decimal"); el.autocomplete = "off";
+        var u = document.createElement("span"); u.className = "unit"; u.textContent = f.unit;
+        bx.appendChild(el); bx.appendChild(u); d.appendChild(bx);
+      }
+      el.id = f.id;
+      el.value = state[f.id];
+      if (f.type === "select" && el.value !== state[f.id]) { state[f.id] = f.def; el.value = f.def; }
+      if (f.hint) {
+        var h = document.createElement("span"); h.className = "hint"; h.id = f.id + "-h"; h.textContent = f.hint;
+        el.setAttribute("aria-describedby", h.id); d.appendChild(h);
+      }
+      var evt = (f.type === "select") ? "change" : "input";
+      el.addEventListener(evt, function () {
+        state[f.id] = el.value;
+        if (f.id === "taxMode") {
+          if (el.value === "rev") state.tax = "6";
+          if (el.value === "profit") state.tax = "15";
+          document.getElementById("tax").value = state.tax;
+        }
+        persist(); render();
+      });
+      wrap.appendChild(d);
+    });
+    fs.appendChild(wrap);
+    root.appendChild(fs);
+  });
+
+  // ---------- math ----------
+  function num(v) {
+    var n = parseFloat(String(v).replace(/\s/g, "").replace(",", "."));
+    return isFinite(n) ? n : 0;
+  }
+  function clamp(x, a, b) { return Math.min(b, Math.max(a, x)); }
+
+  function params() {
+    return {
+      price: Math.max(0, num(state.price)),
+      cost: Math.max(0, num(state.cost)),
+      b: clamp(num(state.buyout) / 100, 0.01, 1),
+      c: clamp(num(state.comm) / 100, 0, 0.99),
+      logi: Math.max(0, num(state.logi)),
+      ret: Math.max(0, num(state.ret)),
+      stor: Math.max(0, num(state.stor)),
+      pack: Math.max(0, num(state.pack)),
+      a: clamp(num(state.ads) / 100, 0, 0.99),
+      v: clamp(num(state.vat) / 100, 0, 0.5),
+      vatIn: state.vatIn !== "no",
+      t: clamp(num(state.tax) / 100, 0, 0.99),
+      mode: state.taxMode,
+      units: Math.max(0, num(state.units)),
+      m: clamp(num(state.target) / 100, 0, 0.95)
+    };
+  }
+
+  function econ(P, p) {
+    var g = 1 / (1 + p.v);
+    var outVat = P * (1 - g);
+    var inVat = p.vatIn ? p.cost * (1 - g) : 0;
+    var logist = (p.logi + p.ret * (1 - p.b)) / p.b;
+    var stor = p.stor / p.b;
+    var commission = P * p.c;
+    var ads = P * p.a;
+    var netRev = P - outVat;
+    var pre = netRev - (p.cost - inVat) - commission - logist - stor - p.pack - ads;
+    var tax = p.mode === "profit" ? Math.max(0, pre) * p.t : netRev * p.t;
+    return { logist: logist, stor: stor, pack: p.pack, commission: commission, ads: ads,
+             vat: outVat - inVat, pre: pre, tax: tax, profit: pre - tax };
+  }
+
+  function consts(p) {
+    var g = 1 / (1 + p.v);
+    return {
+      g: g,
+      Cn: p.cost * (p.vatIn ? g : 1),
+      K: (p.logi + p.ret * (1 - p.b) + p.stor) / p.b + p.pack
+    };
+  }
+  function breakEven(p) {
+    var k = consts(p);
+    var d = p.mode === "profit" ? (k.g - p.c - p.a) : (k.g * (1 - p.t) - p.c - p.a);
+    return d > 0 ? (k.Cn + k.K) / d : null;
+  }
+  function targetPrice(p) {
+    var k = consts(p);
+    if (p.mode === "profit") {
+      var d1 = (1 - p.t) * (k.g - p.c - p.a) - p.m;
+      return d1 > 0 ? (1 - p.t) * (k.Cn + k.K) / d1 : null;
+    }
+    var d2 = k.g * (1 - p.t) - p.c - p.a - p.m;
+    return d2 > 0 ? (k.Cn + k.K) / d2 : null;
+  }
+
+  // ---------- formatting ----------
+  var nf0 = new Intl.NumberFormat("ru-RU", { maximumFractionDigits: 0 });
+  var nf2 = new Intl.NumberFormat("ru-RU", { maximumFractionDigits: 2 });
+  function money(n) {
+    if (n === null || !isFinite(n)) return "—";
+    var s = (Math.abs(n) >= 100 ? nf0 : nf2).format(Math.abs(n) < 0.005 ? 0 : n);
+    return s.replace("-", "−") + "\u00A0₽";
+  }
+  function pct(n) {
+    if (n === null || !isFinite(n)) return "—";
+    return nf0.format(Math.round(n * 100)).replace("-", "−") + "\u00A0%";
+  }
+  function $(id) { return document.getElementById(id); }
+  function setSign(el, v) {
+    el.classList.remove("pos", "neg");
+    if (v > 0.005) el.classList.add("pos");
+    else if (v < -0.005) el.classList.add("neg");
+  }
+
+  // ---------- render ----------
+  function render() {
+    var p = params();
+    var name = (state.name || "").trim();
+    $("resTitle").textContent = name || "Ваш товар";
+    $("vatIn").disabled = !(p.v > 0);
+
+    if (p.price <= 0) {
+      $("bigProfit").textContent = "—";
+      $("bigProfit").className = "big";
+      ["mMargin", "mRoi", "mMonth", "kpBreak", "kpTarget", "dockProfit", "dockMargin"].forEach(function (id) { $(id).textContent = "—"; });
+      $("notice").className = "notice warn";
+      $("notice").textContent = "Введите цену продажи больше нуля.";
+      $("bar").innerHTML = ""; $("legend").innerHTML = ""; $("sens").innerHTML = "";
+      return;
+    }
+
+    var e = econ(p.price, p);
+    var margin = e.profit / p.price;
+    var roi = p.cost > 0 ? e.profit / p.cost : null;
+    var month = e.profit * p.units;
+
+    $("bigProfit").textContent = money(e.profit);
+    $("bigProfit").className = "big " + (e.profit > 0.005 ? "pos" : e.profit < -0.005 ? "neg" : "");
+    $("mMargin").textContent = pct(margin);
+    $("mRoi").textContent = pct(roi);
+    $("mMonth").textContent = money(month);
+    $("mMonthLbl").textContent = "прибыль в месяц при " + nf0.format(p.units) + " продажах";
+    $("dockProfit").textContent = money(e.profit); setSign($("dockProfit"), e.profit);
+    $("dockMargin").textContent = pct(margin); setSign($("dockMargin"), e.profit);
+
+    var be = breakEven(p);
+    var tp = targetPrice(p);
+    $("kpBreak").textContent = be === null ? "—" : money(be);
+    $("kpTarget").textContent = tp === null ? "—" : money(tp);
+    $("kpTargetLbl").textContent = "цена для маржи " + nf0.format(Math.round(p.m * 100)) + "\u00A0%";
+
+    var n = $("notice");
+    if (e.profit < -0.005) {
+      n.className = "notice loss";
+      n.textContent = "Вы работаете в убыток: каждая штука отнимает " + money(-e.profit) + "." + (be !== null ? " Без убытка цена должна быть не ниже " + money(be) + "." : " При таких комиссии, рекламе и налоге цена не окупается ни при каком значении.");
+    } else if (margin >= 0.2) {
+      n.className = "notice good";
+      n.textContent = "Отличная маржа: товар можно масштабировать.";
+    } else if (margin >= 0.1) {
+      n.className = "notice good";
+      n.textContent = "Нормальная маржа: следите за рекламой и возвратами.";
+    } else if (margin >= 0.03) {
+      n.className = "notice warn";
+      n.textContent = "Маржа тонкая: оптимизируйте логистику, рекламу или цену.";
+    } else {
+      n.className = "notice warn";
+      n.textContent = "Маржа почти нулевая: небольшой рост расходов уведёт товар в минус.";
+    }
+
+    // bar
+    var parts = [
+      { k: "cost", label: "Себестоимость", v: p.cost, color: "var(--c-cost)" },
+      { k: "comm", label: "Комиссия площадки", v: e.commission, color: "var(--c-comm)" },
+      { k: "log", label: "Логистика, хранение, упаковка", v: e.logist + e.stor + e.pack, color: "var(--c-log)" },
+      { k: "ads", label: "Реклама", v: e.ads, color: "var(--c-ads)" }
+    ];
+    if (p.v > 0) parts.push({ k: "vat", label: "НДС к уплате", v: e.vat, color: "var(--c-vat)" });
+    parts.push({ k: "tax", label: "Налог", v: e.tax, color: "var(--c-tax)" });
+    parts.push({ k: "profit", label: e.profit < 0 ? "Убыток" : "Прибыль", v: Math.max(e.profit, 0), color: "var(--c-profit)" });
+
+    var costSum = 0;
+    parts.forEach(function (x) { if (x.k !== "profit") costSum += Math.max(x.v, 0); });
+    var total = Math.max(p.price, costSum);
+    var bar = $("bar");
+    bar.className = "bar" + (e.profit < 0 ? " over" : "");
+    bar.innerHTML = "";
+    parts.forEach(function (x) {
+      var s = document.createElement("div");
+      s.className = "seg";
+      s.style.width = (Math.max(x.v, 0) / total * 100) + "%";
+      s.style.background = x.color;
+      s.title = x.label + ": " + money(x.v);
+      bar.appendChild(s);
+    });
+    $("barSub").textContent = e.profit < 0
+      ? "Расходы на одну штуку больше цены на " + money(-e.profit)
+      : "Из цены " + money(p.price) + " с каждой проданной штуки";
+    var lg = $("legend");
+    lg.innerHTML = "";
+    parts.forEach(function (x) {
+      if (x.k === "profit" && e.profit < 0) {
+        x = { k: "loss", label: "Убыток", v: e.profit, color: "var(--loss)" };
+      }
+      var li = document.createElement("li");
+      var sw = document.createElement("span"); sw.className = "sw"; sw.style.background = x.color;
+      var lb = document.createElement("span"); lb.textContent = x.label;
+      var am = document.createElement("span"); am.className = "amt"; am.textContent = money(x.v);
+      var pc = document.createElement("span"); pc.className = "pct"; pc.textContent = pct(x.v / p.price);
+      li.appendChild(sw); li.appendChild(lb); li.appendChild(am); li.appendChild(pc);
+      lg.appendChild(li);
+    });
+
+    // sensitivity
+    var steps = [-0.1, -0.05, 0, 0.05, 0.1];
+    var html = "<thead><tr><th></th>";
+    steps.forEach(function (s) {
+      html += "<th" + (s === 0 ? ' class="cur"' : "") + ">" + (s === 0 ? "Сейчас" : (s > 0 ? "+" : "−") + Math.abs(s * 100) + "%") + "</th>";
+    });
+    html += "</tr></thead><tbody>";
+    var rowPrice = "<tr><td>Цена</td>", rowProfit = "<tr><td>Прибыль</td>", rowMargin = "<tr><td>Маржа</td>";
+    steps.forEach(function (s) {
+      var P = p.price * (1 + s), ee = econ(P, p);
+      var cur = s === 0 ? " cur" : "";
+      var cls = ee.profit < -0.005 ? " neg" : ee.profit > 0.005 ? " pos" : "";
+      rowPrice += '<td class="' + cur.trim() + '">' + money(P) + "</td>";
+      rowProfit += '<td class="' + (cur + cls).trim() + '">' + money(ee.profit) + "</td>";
+      rowMargin += '<td class="' + (cur + cls).trim() + '">' + pct(ee.profit / P) + "</td>";
+    });
+    html += rowPrice + "</tr>" + rowProfit + "</tr>" + rowMargin + "</tr></tbody>";
+    $("sens").innerHTML = html;
+  }
+
+  render();
+})();
+</script>
+</body>
+</html>
